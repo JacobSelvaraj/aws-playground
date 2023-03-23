@@ -1,0 +1,24 @@
+def drain_node(cluster_name, node_name):
+    eks = boto3.client('eks')
+    response = eks.list_nodegroups(clusterName=cluster_name)
+    nodegroups = response['nodegroups']
+    for nodegroup in nodegroups:
+        response = eks.describe_nodegroup(clusterName=cluster_name, nodegroupName=nodegroup)
+        nodes = response['nodegroup']['resources']['autoScalingGroups'][0]['name']
+        ec2 = boto3.client('ec2')
+        response = ec2.describe_instances(Filters=[{'Name': 'tag:Name', 'Values': [nodes]}])
+        instance_id = response['Reservations'][0]['Instances'][0]['InstanceId']
+        print(f"Draining node {node_name} from nodegroup {nodegroup}")
+        eks.update_nodegroup_config(clusterName=cluster_name, nodegroupName=nodegroup, updateConfig={'maxUnavailable': '100%'})
+        eks.cordon_node(clusterName=cluster_name, nodeName=node_name)
+        eks.drain_node(clusterName=cluster_name, nodeName=node_name)
+        eks.uncordon_node(clusterName=cluster_name, nodeName=node_name)
+        eks.update_nodegroup_config(clusterName=cluster_name, nodegroupName=nodegroup, updateConfig={'maxUnavailable': '1'})
+        print(f"Successfully drained node {node_name} from nodegroup {nodegroup}")
+        
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Drain a node from an EKS cluster.')
+    parser.add_argument('--cluster-name', dest='cluster_name', type=str, required=True, help='The name of the EKS cluster.')
+    parser.add_argument('--node-name', dest='node_name', type=str, required=True, help='The name of the node to drain.')
+    args = parser.parse_args()
+    drain_node(args.cluster_name, args.node_name)
