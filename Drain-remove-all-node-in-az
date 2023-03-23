@@ -1,0 +1,60 @@
+import os
+import json
+import subprocess
+import boto3
+from typing import List
+
+
+def get_nodes_in_az(az: str) -> List[str]:
+    output = subprocess.check_output(["kubectl", "get", "nodes", "-o", "json"])
+    nodes_data = json.loads(output)
+    nodes = []
+    
+    for node in nodes_data["items"]:
+        labels = node["metadata"]["labels"]
+        if labels["failure-domain.beta.kubernetes.io/zone"] == az:
+            nodes.append(node["metadata"]["name"])
+            
+    return nodes
+
+
+def drain_node(node_name: str):
+    subprocess.run(["kubectl", "drain", node_name, "--ignore-daemonsets", "--delete-local-data", "--force"])
+
+
+def get_instance_id(node_name: str) -> str:
+    output = subprocess.check_output(["kubectl", "get", "node", node_name, "-o", "json"])
+    node_data = json.loads(output)
+    return node_data["spec"]["providerID"].split("/")[-1]
+
+
+def remove_node_from_asg(instance_id: str, region: str):
+    autoscaling = boto3.client("autoscaling", region_name=region)
+    response = autoscaling.describe_auto_scaling_instances(InstanceIds=[instance_id])
+
+    if response["AutoScalingInstances"]:
+        asg_name = response["AutoScalingInstances"][0]["AutoScalingGroupName"]
+        autoscaling.detach_instances(
+            InstanceIds=[instance_id],
+            AutoScalingGroupName=asg_name,
+            ShouldDecrementDesiredCapacity=True
+        )
+        
+        ec2 = boto3.resource("ec2", region_name=region)
+        ec2.instances.filter(InstanceIds=[instance_id]).terminate()
+
+
+def lambda_handler(event, context):
+    region = event.get("region", "us-west-2")
+    az = event.get("az", "us-west-2a")
+    os.environ["KUBECONFIG"] = os.environ.get("KUBECONFIG_PATH", "/path/to/kubeconfig")
+
+    nodes_to_drain = get_nodes_in_az(az)
+    
+    for node in nodes_to_drain:
+        drain_node(node)
+        print(f"Drained node: {node}")
+
+        instance_id = get_instance_id(node)
+        remove_node_from_asg(instance_id, region)
+        print(f"Removed instance {instance_id} from Auto Scaling group and terminated it")
