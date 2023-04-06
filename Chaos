@@ -1,0 +1,10 @@
+Chaos Engineering is the practice of intentionally introducing failures into systems to ensure they are resilient and can handle unexpected situations. EKS is a managed Kubernetes service that makes it easy to deploy, manage, and scale containerized applications using Kubernetes on AWS.
+
+Chaos Engineering is important for EKS environments for several reasons:
+
+Improve reliability: By injecting faults in your EKS clusters, you can identify weaknesses and improve the reliability of your containerized applications.
+Enhance fault tolerance: Chaos Engineering helps you discover how your EKS infrastructure and applications respond to different failure scenarios. This can lead to better fault-tolerant designs and improved system resilience.
+Increase confidence in system stability: Regularly testing your EKS environment with Chaos Engineering can boost confidence in the overall system stability and prepare your team to handle incidents more efficiently.
+Optimize performance: Identifying bottlenecks and performance issues during Chaos Engineering experiments can help you optimize your EKS deployments for better performance.
+Accelerate innovation: By improving the resilience of your EKS infrastructure, your team can confidently innovate and deploy new features without worrying about unexpected failures.
+To get started with Chaos Engineering in EKS, you can explore tools like Gremlin, Chaos Mesh, or LitmusChaos. These tools provide a range of features for designing and executing Chaos Engineering experiments in your Kubernetes environment, including EKS
