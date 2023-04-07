@@ -1,7 +1,11 @@
-Identify the key components of your DynamoDB system, such as the DynamoDB table, the application code that interacts with the table, and the network infrastructure that connects them.
-Define the goals and objectives of the Chaos testing, such as identifying potential blackhole scenarios and testing the system's resilience to them.
-Identify the potential failure scenarios that could lead to a blackhole scenario, such as network partitioning, node failures, or data corruption.
-Use Chaos Engineering tools like Gremlin to simulate these failure scenarios and observe how the system responds.
-Verify that the system is able to recover from the simulated failures and that data is still accessible and readable after the failure scenarios are resolved.
-Analyze the results of the Chaos testing and identify areas for improvement. This may include making changes to the network infrastructure, modifying the application code to handle failures more effectively, or implementing retry logic in the system.
-Iterate the Chaos testing process to ensure that the system remains resilient to potential blackhole scenarios over time.
+AWS provides several features to help self-heal DynamoDB in the event of a regional failure. Here are some of the key ways that AWS self-heals DynamoDB regional failures:
+
+Global Tables: DynamoDB Global Tables is a feature that automatically replicates data across multiple regions, allowing applications to continue reading and writing data even if one or more regions experience a failure. Global Tables can be set up to automatically failover to a healthy replica in the event of a regional failure, ensuring that applications can continue to operate without interruption.
+
+Multi-AZ Deployments: In addition to Global Tables, DynamoDB also supports Multi-AZ deployments. In this configuration, DynamoDB automatically replicates data to a secondary availability zone within the same region. If the primary availability zone experiences a failure, DynamoDB can failover to the secondary availability zone to ensure high availability and data durability.
+
+Point-in-time Recovery: DynamoDB Point-in-time Recovery (PITR) allows you to restore your table data to any point in time during the last 35 days. This can be helpful in the event of data corruption or accidental deletion, and can be used to quickly recover from a regional failure.
+
+AWS Backup: AWS Backup is a fully managed backup service that makes it easy to centralize and automate the backup of data across AWS services, including DynamoDB. You can use AWS Backup to create and manage backup policies for your DynamoDB tables, ensuring that your data is protected and can be easily restored in the event of a regional failure.
+
+By using these features, AWS self-heals DynamoDB in the event of a regional failure, ensuring high availability, data durability, and data protection.
